@@ -146,24 +146,31 @@
 
                         var tableHtml = `
                             <table>
-                                <tr><th colspan="2">개인별 정산서</th></tr>
-                                <tr><td>기간</td><td>${calculatedPeriod}</td></tr>
-                                <tr><td>코드</td><td>${data.code}</td></tr>
-                                <tr><td>총 오더 수</td><td>${data.totalOrders}</td></tr>
-                                <tr><td>수령금액</td><td>${data.receivedAmount}</td></tr>
-                                <tr><td>총 지원금</td><td>${data.supportAmount}</td></tr>
-                                <tr><td>차감내역</td><td>${data.deductions}</td></tr>
-                                <tr><td>과세 전 금액</td><td>${data.taxableAmount}</td></tr>
-                                <tr><td>고용보험</td><td>${data.employmentInsurance}</td></tr>
-                                <tr><td>산재보험</td><td>${data.industrialInsurance}</td></tr>
-                                <tr><td>시간제보험</td><td>${data.hourlyInsurance}</td></tr>
-                                <tr><td>보험료소급</td><td>${data.insuranceBackpay}</td></tr>
-                                <tr><td>프로모션</td><td>${data.promotion}</td></tr>
-                                <tr><td>소득세 (3.3%)</td><td>${data.tax}</td></tr>
-                                <tr class="footer"><td>실지급액</td><td>${data.finalAmount}</td></tr>
-                                <tr><td>1차 지급액 (화요일)</td><td>${data.firstPayment}</td></tr>
-                                <tr><td>2차 지급액 (금요일)</td><td>${data.secondPayment}</td></tr>
-                                <tr><td colspan="2">정산문의: ${data.contact}</td></tr>
+                                 <tr><th colspan="2">개인별 정산서</th></tr>
+                                 <tr><td>고유번호</td><td>${data.id}</td></tr>
+                                 <tr><td>라이더명</td><td>${data.name}</td></tr>
+                                 <tr><td>클러스터</td><td>${data.cluster}</td></tr>
+                                 <tr><td>구분</td><td>${data.type}</td></tr>
+                                 <tr><td>정산주기</td><td>${data.period}</td></tr>
+                                 <tr><td>수행건수</td><td>${data.totalOrders}</td></tr>
+                                 <tr><td>정산서 정산금액</td><td>${data.settlementAmount}</td></tr>
+                                 <tr><td>관리자 달성액</td><td>${data.managerBonus}</td></tr>
+                                 <tr><td>프로모션</td><td>${data.promotion}</td></tr>
+                                 <tr><td>총과세금액</td><td>${data.taxableAmount}</td></tr>
+                                 <tr><td>기사부담 고용보험</td><td>${data.employmentInsurance}</td></tr>
+                                 <tr><td>기사부담 산재보험</td><td>${data.industrialInsurance}</td></tr>
+                                 <tr><td>시간제보험</td><td>${data.hourlyInsurance}</td></tr>
+                                 <tr><td>보험료소급</td><td>${data.insuranceBackpay}</td></tr>
+                                 <tr><td>소득세</td><td>${data.tax}</td></tr>
+                                 <tr><td>지방소득세</td><td>${data.localTax}</td></tr>
+                                 <tr><td>원천징수</td><td>${data.withholding}</td></tr>
+                                 <tr><td>1회차 정산금액</td><td>${data.firstSettlement}</td></tr>
+                                 <tr><td>선차감금액</td><td>${data.advanceDeductions}</td></tr>
+                                 <tr><td>1회차 지급예정액</td><td>${data.firstPlanned}</td></tr>
+                                 <tr><td>1회차 실지급액</td><td>${data.firstActual}</td></tr>
+                                 <tr><td>2회차 지급액</td><td>${data.secondPayment}</td></tr>
+                                 <tr class="footer"><td>총지급액</td><td>${data.totalPayment}</td></tr>
+                                 <tr><td>미정산금</td><td>${data.unpaid}</td></tr>
                             </table>`;
 
                         $('#result').html(tableHtml);
@@ -178,4 +185,5 @@
     </script>
 </body>
 </html>
+
 
