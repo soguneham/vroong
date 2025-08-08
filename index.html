@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부릉라이더스 정산서 조회</title>
+	    <link rel="icon" type="image/png" href="VRriders.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            max-width: 600px;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            font-size: 16px;
+        }
+        th {
+            background-color: #b2dba1;
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        td {
+            background-color: #ffffff;
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        .footer, .footer td {
+            background-color: #b2dba1 !important;
+            font-weight: bold;
+        }
+        input {
+            width: 95%;
+            padding: 8px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>부릉라이더스 정산서 조회</h2>
+    <p>코드 및 정산 문의 : 010-9785-1293</p>
+    <form id="searchForm">
+        <table>
+            <tr>
+                <td>입금 날짜</td>
+                <td><input type="text" id="searchDate" name="searchDate" placeholder="예: 250307"></td>
+            </tr>
+            <tr>
+                <td>검색 코드</td>
+                <td><input type="text" id="searchCode" name="searchCode" placeholder="예: C202401001"></td>
+            </tr>
+        </table>
+        <button type="submit">검색</button>
+    </form>
+
+    <h3>검색 결과</h3>
+    <div id="result"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+	function calculatePeriod(searchDate) {
+    var year = parseInt("20" + searchDate.substring(0, 2));
+    var month = parseInt(searchDate.substring(2, 4)) - 1;
+    var day = parseInt(searchDate.substring(4, 6));
+    var inputDate = new Date(year, month, day);
+
+    // 🔹 입력 날짜의 요일을 가져옴 (0: 일요일 ~ 6: 토요일)
+    var dayOfWeek = inputDate.getDay();
+
+    // 🔹 "전 주" 수요일 찾기
+    var wednesdayDate = new Date(inputDate);
+    wednesdayDate.setDate(inputDate.getDate() - dayOfWeek - 4); // 🔥 항상 "전 주" 수요일
+
+    // 🔹 해당 주 화요일 찾기 (수요일 + 6일 후)
+    var tuesdayDate = new Date(wednesdayDate);
+    tuesdayDate.setDate(wednesdayDate.getDate() + 6);
+
+    function formatDate(date) {
+        var mm = String(date.getMonth() + 1).padStart(2, '0');
+        var dd = String(date.getDate()).padStart(2, '0');
+        return mm + "/" + dd;
+    }
+
+    return formatDate(wednesdayDate) + " ~ " + formatDate(tuesdayDate);
+}
+
+        $(document).ready(function(){
+            $('#searchForm').submit(function(event){
+                event.preventDefault();
+
+                if ($(this).data("processing")) return;
+                $(this).data("processing", true);
+
+                var searchDate = $('#searchDate').val().trim();
+                var searchCode = $('#searchCode').val().trim().toUpperCase(); // 대소문자 구별 X
+
+                if (!/^\d{6}$/.test(searchDate)) {
+                    alert("입금 날짜는 6자리 숫자로 입력하세요. (예: 250307)");
+                    $(this).data("processing", false);
+                    return;
+                }
+                if (!/^[Cc]\d{9}$/.test(searchCode)) {
+                    alert("검색 코드는 'C' 또는 'c'로 시작하는 10자리 형식이어야 합니다. (예: C202401001)");
+                    $(this).data("processing", false);
+                    return;
+                }
+
+                $.ajax({
+                    url: 'https://script.google.com/macros/s/AKfycbwS-d1_SyucL0OMD_GHRvdRq7OQLfuMU73194kEwYG4qW55aoDcB2GnLNB4Trbcuym8JQ/exec',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { 
+                        searchDate: searchDate,
+                        searchCode: searchCode
+                    },
+                    success: function(data) {
+                        $('#searchForm').data("processing", false);
+
+                        if (data.error) {
+                            $('#result').html("<p style='color:red'>" + data.error + "</p>");
+                            return;
+                        }
+
+                        // 🔹 자동 계산된 기간 값 사용
+                        var calculatedPeriod = calculatePeriod(searchDate);
+
+                        var tableHtml = `
+                            <table>
+                                <tr><th colspan="2">개인별 정산서</th></tr>
+                                <tr><td>기간</td><td>${calculatedPeriod}</td></tr>
+                                <tr><td>코드</td><td>${data.code}</td></tr>
+                                <tr><td>총 오더 수</td><td>${data.totalOrders}</td></tr>
+                                <tr><td>수령금액</td><td>${data.receivedAmount}</td></tr>
+                                <tr><td>총 지원금</td><td>${data.supportAmount}</td></tr>
+                                <tr><td>차감내역</td><td>${data.deductions}</td></tr>
+                                <tr><td>과세 전 금액</td><td>${data.taxableAmount}</td></tr>
+                                <tr><td>고용보험</td><td>${data.employmentInsurance}</td></tr>
+                                <tr><td>산재보험</td><td>${data.industrialInsurance}</td></tr>
+                                <tr><td>시간제보험</td><td>${data.hourlyInsurance}</td></tr>
+                                <tr><td>보험료소급</td><td>${data.insuranceBackpay}</td></tr>
+                                <tr><td>프로모션</td><td>${data.promotion}</td></tr>
+                                <tr><td>소득세 (3.3%)</td><td>${data.tax}</td></tr>
+                                <tr class="footer"><td>실지급액</td><td>${data.finalAmount}</td></tr>
+                                <tr><td>1차 지급액 (화요일)</td><td>${data.firstPayment}</td></tr>
+                                <tr><td>2차 지급액 (금요일)</td><td>${data.secondPayment}</td></tr>
+                                <tr><td colspan="2">정산문의: ${data.contact}</td></tr>
+                            </table>`;
+
+                        $('#result').html(tableHtml);
+                    },
+                    error: function() {
+                        $('#searchForm').data("processing", false);
+                        $('#result').html("<p style='color:red'>오류가 발생했습니다. 다시 시도해주세요.</p>");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
