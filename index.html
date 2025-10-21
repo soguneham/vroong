@@ -33,18 +33,29 @@ button:hover { background-color: #45a049; }
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+// 입력한 날짜를 yyMMdd → Date 객체로 변환
+function parseDate(searchDate) {
+    var year = parseInt("20" + searchDate.substring(0,2));
+    var month = parseInt(searchDate.substring(2,4)) - 1;
+    var day = parseInt(searchDate.substring(4,6));
+    return new Date(year, month, day);
+}
+
+// 기간 계산 (수요일~다음 화요일)
 function calculatePeriod(searchDate) {
-    var year = parseInt("20" + searchDate.substring(0, 2));
-    var month = parseInt(searchDate.substring(2, 4)) - 1;
-    var day = parseInt(searchDate.substring(4, 6));
-    var inputDate = new Date(year, month, day);
+    var inputDate = parseDate(searchDate);
     var dayOfWeek = inputDate.getDay();
+    // 수요일 기준
     var wednesdayDate = new Date(inputDate);
-    wednesdayDate.setDate(inputDate.getDate() - dayOfWeek - 4);
+    wednesdayDate.setDate(inputDate.getDate() - ((dayOfWeek + 4) % 7));
     var tuesdayDate = new Date(wednesdayDate);
     tuesdayDate.setDate(wednesdayDate.getDate() + 6);
-    function formatDate(date){ var mm = String(date.getMonth()+1).padStart(2,'0'); var dd = String(date.getDate()).padStart(2,'0'); return mm+"/"+dd;}
-    return formatDate(wednesdayDate)+" ~ "+formatDate(tuesdayDate);
+    function formatDate(date){ 
+        var mm = String(date.getMonth()+1).padStart(2,'0'); 
+        var dd = String(date.getDate()).padStart(2,'0'); 
+        return mm+"/"+dd;
+    }
+    return formatDate(wednesdayDate) + " ~ " + formatDate(tuesdayDate);
 }
 
 $(document).ready(function(){
@@ -56,17 +67,28 @@ $(document).ready(function(){
         var searchDate = $('#searchDate').val().trim();
         var searchCode = $('#searchCode').val().trim().toUpperCase();
 
-        if (!/^\d{6}$/.test(searchDate)) { alert("입금 날짜는 6자리 숫자로 입력하세요."); $(this).data("processing", false); return; }
-        if (!/^[C]\d{9}$/.test(searchCode)) { alert("검색 코드는 'C'로 시작하는 10자리 형식이어야 합니다."); $(this).data("processing", false); return; }
+        if (!/^\d{6}$/.test(searchDate)) { 
+            alert("입금 날짜는 6자리 숫자로 입력하세요."); 
+            $(this).data("processing", false); 
+            return; 
+        }
+        if (!/^[C]\d{9}$/.test(searchCode)) { 
+            alert("검색 코드는 'C'로 시작하는 10자리 형식이어야 합니다."); 
+            $(this).data("processing", false); 
+            return; 
+        }
 
         $.ajax({
-            url: 'https://script.google.com/macros/s/AKfycbz6sSJMGtpAm9G8mYJ8NrYTXXJKWxN15WbJC3zGPzyfcmCmDFqIt-jxQ7bWf2x9rWetng/exec',
+            url: 'https://script.google.com/macros/s/AKfycbysot7LAam021H1bC1H7J0vMpw0w8dI2JL6punaa2lH-n-ln867BHHpPh5mSmpgCAHo6Q/exec',
             type: 'GET',
             dataType: 'json',
             data: { searchDate: searchDate, searchCode: searchCode },
             success: function(data){
                 $('#searchForm').data("processing", false);
-                if(data.error){ $('#result').html("<p style='color:red'>"+data.error+"</p>"); return; }
+                if(data.error){ 
+                    $('#result').html("<p style='color:red'>"+data.error+"</p>"); 
+                    return; 
+                }
 
                 var calculatedPeriod = calculatePeriod(searchDate);
 
@@ -90,7 +112,10 @@ $(document).ready(function(){
 </table>`;
                 $('#result').html(tableHtml);
             },
-            error: function(){ $('#searchForm').data("processing", false); $('#result').html("<p style='color:red'>오류가 발생했습니다.</p>"); }
+            error: function(){ 
+                $('#searchForm').data("processing", false); 
+                $('#result').html("<p style='color:red'>오류가 발생했습니다.</p>"); 
+            }
         });
     });
 });
